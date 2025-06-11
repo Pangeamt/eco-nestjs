@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceRole {
+  OWNER
+  MEMBER
+}
+
+enum UserRole {
+  ADMIN
+  PM
+  USER
+}
+
+model Workspace {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  metadata    Json
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  users WorkspaceUser[]
+
+  @@index([name])
+}
+
+model WorkspaceUser {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String    @db.ObjectId
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
+
+  role      WorkspaceRole
+  invitedAt DateTime?
+  joinedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, userId])
+}
+
+model User {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  fullName String
+  email    String @unique
+  password String
+
+  isRemoved Boolean @default(false)
+  isActive  Boolean @default(false)
+
+  apiKey String @unique @default(uuid())
+
+  role UserRole
+
+  workspaces WorkspaceUser[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
