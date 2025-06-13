@@ -15,6 +15,7 @@ const envSchema = z.object({
     .string()
     .default('*')
     .transform((val) => val.split(',')),
+  JWT_SECRET: z.string(),
 });
 
 // Usar safeParse para mejor manejo de errores
